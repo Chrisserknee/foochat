@@ -2365,19 +2365,21 @@ export default function FooChat() {
                   className="px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all shadow-xl hover:shadow-2xl transform hover:scale-105 hover:brightness-110"
                   style={{ background: 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)', color: 'white' }}
                 >
-                  💬 Start Chatting (Free)
+                  {isPro ? '💬 Start Chatting' : '💬 Start Chatting (Free)'}
                 </button>
-                <button
-                  onClick={() => setShowPricingModal(true)}
-                  className="px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105 border-2"
-                  style={{ 
-                    background: 'rgba(255,255,255,0.9)', 
-                    color: '#6b5438',
-                    borderColor: '#8b6f47'
-                  }}
-                >
-                  ⚡ Go Pro - $0.50/mo
-                </button>
+                {!isPro && (
+                  <button
+                    onClick={() => setShowPricingModal(true)}
+                    className="px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105 border-2"
+                    style={{ 
+                      background: 'rgba(255,255,255,0.9)', 
+                      color: '#6b5438',
+                      borderColor: '#8b6f47'
+                    }}
+                  >
+                    ⚡ Go Pro - $0.50/mo
+                  </button>
+                )}
               </div>
               
               {!user && (
