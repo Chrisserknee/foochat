@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
               name: "Foo Pro Subscription",
               description: "Unlimited messages, voice responses, and priority support",
             },
-            unit_amount: 50, // $0.50 in cents (TEST PRICING)
+            unit_amount: 500, // $5.00 in cents
             recurring: {
               interval: "month",
             },

@@ -133,7 +133,7 @@ export function PricingModal({ onClose }: PricingModalProps) {
 
             <div className="text-center mb-2 sm:mb-4">
               <h3 className="text-lg sm:text-2xl font-bold mb-0.5 sm:mb-2" style={{ color: 'var(--text-primary)' }}>Foo Pro</h3>
-              <div className="text-2xl sm:text-4xl font-black mb-0.5 sm:mb-2" style={{ color: 'var(--text-primary)' }}>$0.50</div>
+              <div className="text-2xl sm:text-4xl font-black mb-0.5 sm:mb-2" style={{ color: 'var(--text-primary)' }}>$5</div>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Per month</p>
             </div>
             

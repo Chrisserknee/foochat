@@ -1735,7 +1735,7 @@ export default function FooChat() {
     // Check AF Voice subscription (Pro users get it included!)
     if (!isPro && !hasAFVoice) {
       setNotification({ 
-        message: '🎤 AF Voice Mode requires Pro subscription. Unlock unlimited messages + AF Voice for just $0.50/mo!', 
+        message: '🎤 AF Voice Mode requires Pro subscription. Unlock unlimited messages + AF Voice for just $5/mo!', 
         type: 'info' 
       });
       setShowPricingModal(true); // Show Pro modal instead of AF Voice modal
@@ -2376,7 +2376,7 @@ export default function FooChat() {
                       borderColor: '#8b6f47'
                     }}
                   >
-                    ⚡ Go Pro - $0.50/mo
+                    ⚡ Go Pro - $5/mo
                   </button>
                 )}
               </div>
