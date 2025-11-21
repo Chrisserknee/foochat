@@ -47,8 +47,8 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* Eruda Mobile Debugger - Load FIRST */}
-        <script
+        {/* Eruda Mobile Debugger - DISABLED */}
+        {/* <script
           dangerouslySetInnerHTML={{
             __html: `
               // Load Eruda synchronously FIRST
@@ -71,7 +71,7 @@ export default function RootLayout({
               })();
             `,
           }}
-        />
+        /> */}
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <ThemeProvider>
