@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
               description: "Advanced Foo Mode - Real-time voice conversations with Foo",
               images: ["https://i.imgur.com/your-foo-avatar.png"], // Optional: add your Foo avatar
             },
-            unit_amount: 499, // $4.99 in cents
+            unit_amount: 50, // $0.50 in cents (TEST PRICING)
             recurring: {
               interval: "month",
             },

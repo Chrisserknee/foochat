@@ -96,7 +96,7 @@ export function AFVoiceModal({ onClose }: AFVoiceModalProps) {
           </div>
 
           <div className="text-center mb-6">
-            <div className="text-4xl sm:text-5xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>$4.99</div>
+            <div className="text-4xl sm:text-5xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>$0.50</div>
             <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>Per month</p>
           </div>
           
@@ -166,7 +166,7 @@ export function AFVoiceModal({ onClose }: AFVoiceModalProps) {
                 background: 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)'
               }}
             >
-              {isLoading ? 'Loading...' : '🎤 Unlock AF Voice - $4.99/mo'}
+              {isLoading ? 'Loading...' : '🎤 Unlock AF Voice - $0.50/mo'}
             </button>
           )}
         </div>

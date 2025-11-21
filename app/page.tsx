@@ -1724,7 +1724,7 @@ export default function FooChat() {
     // Check AF Voice subscription
     if (!hasAFVoice) {
       setNotification({ 
-        message: '🎤 AF Voice Mode requires a subscription. Unlock it for just $4.99/mo!', 
+        message: '🎤 AF Voice Mode requires a subscription. Unlock it for just $0.50/mo!', 
         type: 'info' 
       });
       setShowAFVoiceModal(true);
@@ -2693,7 +2693,7 @@ export default function FooChat() {
                     }}
                     title={hasAFVoice 
                       ? (isMobile ? "Advanced Foo - Tap to record" : "Advanced Foo - Talk to Foo")
-                      : "AF Voice Mode - Premium $4.99/mo - Click to unlock"}
+                      : "AF Voice Mode - Premium $0.50/mo - Click to unlock"}
                   >
                     {!hasAFVoice && (
                       <span className="absolute -top-1 -right-1 text-xs bg-yellow-500 text-black rounded-full w-5 h-5 flex items-center justify-center shadow-md">
