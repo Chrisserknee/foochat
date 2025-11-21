@@ -144,6 +144,10 @@ export function PricingModal({ onClose }: PricingModalProps) {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-500 mt-0.5 text-sm">✓</span>
+                <span className="text-xs sm:text-base font-bold" style={{ color: '#8b6f47' }}>🎤 Advanced Foo (AF) Voice Mode</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-0.5 text-sm">✓</span>
                 <span className="text-xs sm:text-base font-medium" style={{ color: 'var(--text-primary)' }}>Hear Foo speak with voice 🔊</span>
               </li>
               <li className="flex items-start gap-2">

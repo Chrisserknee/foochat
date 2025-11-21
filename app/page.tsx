@@ -1730,13 +1730,13 @@ export default function FooChat() {
   };
 
   const startAdvancedFoo = async () => {
-    // Check AF Voice subscription
-    if (!hasAFVoice) {
+    // Check AF Voice subscription (Pro users get it included!)
+    if (!isPro && !hasAFVoice) {
       setNotification({ 
-        message: '🎤 AF Voice Mode requires a subscription. Unlock it for just $0.50/mo!', 
+        message: '🎤 AF Voice Mode requires Pro subscription. Unlock unlimited messages + AF Voice for just $0.50/mo!', 
         type: 'info' 
       });
-      setShowAFVoiceModal(true);
+      setShowPricingModal(true); // Show Pro modal instead of AF Voice modal
       return;
     }
     
@@ -2698,13 +2698,13 @@ export default function FooChat() {
                         : 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)',
                       color: 'white',
                       animation: (isListening || isRecording) ? 'pulse 1.5s ease-in-out infinite' : 'none',
-                      opacity: hasAFVoice ? 1 : 0.7
+                      opacity: (isPro || hasAFVoice) ? 1 : 0.7
                     }}
-                    title={hasAFVoice 
+                    title={(isPro || hasAFVoice)
                       ? (isMobile ? "Advanced Foo - Tap to record" : "Advanced Foo - Talk to Foo")
-                      : "AF Voice Mode - Premium $0.50/mo - Click to unlock"}
+                      : "AF Voice Mode - Premium (Included with Pro) - Click to unlock"}
                   >
-                    {!hasAFVoice && (
+                    {!isPro && !hasAFVoice && (
                       <span className="absolute -top-1 -right-1 text-xs bg-yellow-500 text-black rounded-full w-5 h-5 flex items-center justify-center shadow-md">
                         🔒
                       </span>
