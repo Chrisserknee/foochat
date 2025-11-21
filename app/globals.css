@@ -1,0 +1,602 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth Easing Variables */
+:root {
+  --ease-in-out-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-smooth: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in-smooth: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Enhanced Animation Keyframes */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes typing {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    border-right-color: transparent;
+  }
+  50% {
+    border-right-color: #4f46e5;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(20px, -20px);
+  }
+  50% {
+    transform: translate(-10px, 10px);
+  }
+  75% {
+    transform: translate(15px, 5px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* East Salinas Night Vibes - Police Lights */
+@keyframes policeBlue {
+  0% {
+    opacity: 0.7;
+  }
+  15% {
+    opacity: 1.2;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes policeRed {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  65% {
+    opacity: 1.2;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fadeInLights {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Enhanced Animation Classes */
+.animate-fade-out {
+  animation: fadeOut 0.3s var(--ease-out-smooth) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s var(--ease-out-smooth) forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.4s var(--ease-out-smooth) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s var(--ease-out-smooth) forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.4s var(--ease-out-smooth) forwards;
+}
+
+.animate-typing {
+  overflow: hidden;
+  white-space: pre-wrap;
+  animation: typing 2s steps(40, end) forwards;
+}
+
+.typing-cursor {
+  border-right: 3px solid #4f46e5;
+  animation: blink 0.7s step-end infinite;
+}
+
+/* Notification Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.35s var(--ease-out-smooth);
+  /* Force hardware acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Smooth Hover Effects */
+.smooth-hover {
+  transition: all 0.25s var(--ease-out-smooth);
+  will-change: transform;
+}
+
+.smooth-hover:hover {
+  transform: translateY(-2px);
+}
+
+.smooth-hover:active {
+  transform: translateY(0);
+}
+
+/* Default theme (dark mode) - applies before JavaScript runs */
+:root {
+  --background: #1a150f;
+  --foreground: #E7E9EA;
+  --primary: #2979FF;
+  --secondary: #2979FF;
+  --secondary-bg: rgba(41, 121, 255, 0.15);
+  --accent: #6FFFD2;
+  --accent-purple: #8b6f47;
+  --card-bg: #2a2318;
+  --card-border: #3d3226;
+  --text-primary: #E7E9EA;
+  --text-secondary: #9CA3AF;
+  --hover-bg: rgba(139, 111, 71, 0.15);
+  --bg-primary: #1a150f;
+  --bg-secondary: #2a2318;
+  --bg-tertiary: #3a2f23;
+  --border: #3d3226;
+  --input-bg: #2a2318;
+  --text-gray-900: #E7E9EA;
+  --text-gray-800: #D1D5DB;
+  --text-gray-700: #9CA3AF;
+  --text-gray-600: #6B7280;
+  --text-gray-500: #6B7280;
+}
+
+:root[data-theme="light"] {
+  --background: #E0E6ED;
+  --foreground: #1A1A1A;
+  --primary: #2979FF;
+  --secondary: #2979FF;
+  --secondary-bg: rgba(41, 121, 255, 0.1);
+  --accent: #6FFFD2;
+  --accent-purple: #8b6f47;
+  --card-bg: #FFFFFF;
+  --card-border: #E5E7EB;
+  --text-primary: #3d2817;
+  --text-secondary: #6b5744;
+  --hover-bg: rgba(41, 121, 255, 0.05);
+  --bg-primary: #f5e6d3;
+  --bg-secondary: #faf6f0;
+  --bg-tertiary: #ede4d5;
+  --border: #d4a574;
+  --input-bg: #FFFFFF;
+  --text-gray-900: #111827;
+  --text-gray-800: #1F2937;
+  --text-gray-700: #374151;
+  --text-gray-600: #4B5563;
+  --text-gray-500: #6B7280;
+}
+
+:root[data-theme="dark"] {
+  --background: #1a150f;
+  --foreground: #f5e6d3;
+  --primary: #8b6f47;
+  --secondary: #8b6f47;
+  --secondary-bg: rgba(139, 111, 71, 0.15);
+  --accent: #d4a574;
+  --accent-purple: #8b6f47;
+  --card-bg: #2a2318;
+  --card-border: #3d3226;
+  --text-primary: #f5e6d3;
+  --text-secondary: #d4a574;
+  --hover-bg: rgba(139, 111, 71, 0.15);
+  --bg-primary: #1a150f;
+  --bg-secondary: #2a2318;
+  --bg-tertiary: #3a2f23;
+  --border: #3d3226;
+  --input-bg: #2a2318;
+  --text-gray-900: #E7E9EA;
+  --text-gray-800: #D1D5DB;
+  --text-gray-700: #9CA3AF;
+  --text-gray-600: #6B7280;
+  --text-gray-500: #6B7280;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), 
+              color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* Hardware acceleration */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+}
+
+/* Animated Purple Gradient Overlay - Homepage + Dark Mode Only */
+.homepage-purple-glow {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(147, 51, 234, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 40% 90%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+  /* GPU acceleration */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Show purple glow only in dark mode on homepage */
+:root[data-theme="dark"] .homepage-purple-glow {
+  opacity: 0.3;
+  animation: purpleShift 20s ease-in-out infinite;
+}
+
+@keyframes purpleShift {
+  0% {
+    transform: translate(0%, 0%) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(5%, -3%) scale(1.05) rotate(3deg);
+  }
+  66% {
+    transform: translate(-3%, 4%) scale(0.98) rotate(-2deg);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1) rotate(0deg);
+  }
+}
+
+/* PostReady Logo Blue Glow Effect - Dark Mode Only */
+.logo-glow {
+  transition: filter 0.3s ease;
+}
+
+:root[data-theme="dark"] .logo-glow {
+  filter: drop-shadow(0 0 8px rgba(41, 121, 255, 0.4))
+          drop-shadow(0 0 16px rgba(41, 121, 255, 0.2))
+          drop-shadow(0 0 24px rgba(41, 121, 255, 0.1));
+  animation: logoGlowBlue 4s ease-in-out infinite;
+}
+
+@keyframes logoGlowBlue {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(41, 121, 255, 0.4))
+            drop-shadow(0 0 16px rgba(41, 121, 255, 0.2))
+            drop-shadow(0 0 24px rgba(41, 121, 255, 0.1));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(41, 121, 255, 0.5))
+            drop-shadow(0 0 20px rgba(41, 121, 255, 0.3))
+            drop-shadow(0 0 32px rgba(41, 121, 255, 0.15));
+  }
+}
+
+/* Smooth theme transitions for specific elements */
+body,
+.section-card,
+[data-theme] {
+  transition: background-color 0.5s var(--ease-out-smooth), 
+              color 0.5s var(--ease-out-smooth), 
+              border-color 0.5s var(--ease-out-smooth);
+}
+
+/* Enhanced interactive element transitions */
+button,
+input,
+textarea,
+select {
+  transition: background-color 0.2s var(--ease-out-smooth), 
+              color 0.2s var(--ease-out-smooth), 
+              border-color 0.2s var(--ease-out-smooth),
+              box-shadow 0.25s var(--ease-out-smooth),
+              transform 0.2s var(--ease-out-smooth),
+              opacity 0.2s var(--ease-out-smooth) !important;
+  /* Hardware acceleration */
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Prevent text selection on buttons */
+button {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure placeholder text is visible in inputs with white backgrounds */
+input::placeholder,
+textarea::placeholder {
+  color: #9CA3AF;
+  opacity: 1;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  /* Ensure smooth scrolling on mobile */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Better touch targets for mobile */
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    min-height: 44px; /* iOS recommended touch target size */
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Fix viewport issues on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
+
+/* Smooth Page Transitions - Prevent Flash */
+html {
+  background-color: var(--bg-primary);
+  transition: background-color 0.2s ease-in-out;
+  overscroll-behavior: none; /* Prevent bounce/overscroll on mobile */
+}
+
+body {
+  background-color: var(--bg-primary);
+  transition: background-color 0.2s ease-in-out;
+  min-height: 100vh;
+  overscroll-behavior: none; /* Prevent bounce/overscroll on mobile */
+}
+
+/* Prevent white flash during navigation */
+/* Default to vintage paper background before JavaScript runs */
+html {
+  background-color: #f5e6d3;
+}
+
+/* Dark mode overrides for landing page */
+.landing-bg {
+  transition: background 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+[data-theme="dark"] .landing-bg {
+  background: linear-gradient(135deg, #1a150f 0%, #0f0b08 100%) !important;
+}
+
+.landing-text {
+  transition: color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+[data-theme="dark"] .landing-text {
+  color: #f5e6d3 !important;
+}
+
+.landing-text-secondary {
+  transition: color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+[data-theme="dark"] .landing-text-secondary {
+  color: #d4a574 !important;
+}
+
+.landing-card {
+  transition: background 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), 
+              border-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+[data-theme="dark"] .landing-card {
+  background: rgba(42, 35, 24, 0.7) !important;
+  border-color: #3d3226 !important;
+}
+
+html[data-theme="dark"] {
+  background-color: #1a150f;
+}
+
+html[data-theme="light"] {
+  background-color: #f5e6d3;
+}
+
+/* Smooth content transitions */
+main {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hardware acceleration for smoother animations - only on interactive elements */
+@media (prefers-reduced-motion: no-preference) {
+  a, button {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+}
+
+/* Smooth color transitions for theme changes */
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  transition: all 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+html {
+  transition: background-color 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
