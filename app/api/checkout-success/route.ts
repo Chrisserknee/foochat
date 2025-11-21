@@ -94,19 +94,35 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('💳 Payment verified! Subscription type:', subscriptionType || 'pro', 'for user:', userId);
+    console.log('📋 Session details:', {
+      payment_status: session.payment_status,
+      customer: session.customer,
+      subscription: session.subscription,
+      mode: session.mode,
+      metadata: session.metadata
+    });
 
     // Get subscription and customer details
     const subscriptionId = session.subscription as string;
     const customerId = session.customer as string;
 
+    console.log('🔑 Subscription ID:', subscriptionId);
+    console.log('👤 Customer ID:', customerId);
+
     // Check if user profile exists
+    console.log('🔍 Checking if user profile exists for:', userId);
     const { data: existingProfile, error: fetchError } = await supabase
       .from("user_profiles")
       .select("*")
       .eq("id", userId)
       .maybeSingle();
 
-    console.log('📊 Existing profile check:', { existingProfile, fetchError });
+    console.log('📊 Existing profile check:', { 
+      exists: !!existingProfile, 
+      is_pro: existingProfile?.is_pro,
+      email: existingProfile?.email,
+      fetchError 
+    });
 
     // Check if this is an AF Voice subscription
     if (subscriptionType === 'af_voice') {

@@ -15,6 +15,7 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   upgradeToPro: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  refreshProStatus: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -397,6 +398,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshProStatus = async () => {
+    if (!user) {
+      console.log('⚠️ No user logged in, cannot refresh Pro status');
+      return;
+    }
+
+    console.log('🔄 Manually refreshing Pro status for user:', user.id);
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('is_pro, plan_type, has_af_voice')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        console.log('✅ Refreshed Pro status:', {
+          is_pro: data.is_pro,
+          plan_type: data.plan_type,
+          has_af_voice: data.has_af_voice
+        });
+        
+        setIsPro(data.is_pro || false);
+        setHasAFVoice(data.has_af_voice || false);
+      } else {
+        console.error('❌ Error refreshing Pro status:', error);
+      }
+    } catch (err) {
+      console.error('❌ Exception refreshing Pro status:', err);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -410,6 +443,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut,
         upgradeToPro,
         resetPassword,
+        refreshProStatus,
       }}
     >
       {children}

@@ -23,7 +23,7 @@ type Message = {
 };
 
 export default function FooChat() {
-  const { user, isPro, hasAFVoice, signOut } = useAuth();
+  const { user, isPro, hasAFVoice, signOut, refreshProStatus } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
