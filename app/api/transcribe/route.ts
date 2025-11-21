@@ -52,10 +52,10 @@ export async function POST(request: NextRequest) {
       model: 'whisper-1',
       language: 'en', // English
       response_format: 'text'
-    });
+    }) as string;
 
     // Whisper returns string when response_format is 'text'
-    const text = typeof transcription === 'string' ? transcription : transcription.text;
+    const text = transcription;
     
     console.log('✅ Transcription successful:', text);
 
