@@ -8,9 +8,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 type NavbarProps = {
   onAuthClick: () => void;
   onPricingClick: () => void;
+  onTipJarClick: () => void;
 };
 
-export function Navbar({ onAuthClick, onPricingClick }: NavbarProps) {
+export function Navbar({ onAuthClick, onPricingClick, onTipJarClick }: NavbarProps) {
   const { user, isPro, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -77,6 +78,20 @@ export function Navbar({ onAuthClick, onPricingClick }: NavbarProps) {
               title={mounted ? (theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode') : 'Toggle Theme'}
             >
               {mounted ? (theme === 'dark' ? '☀️' : '🌙') : '🌓'}
+            </button>
+
+            {/* Tip Jar Button */}
+            <button
+              onClick={onTipJarClick}
+              className="px-3 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1.5"
+              style={{ 
+                backgroundColor: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border)'
+              }}
+              title="Help a Foo Out!"
+            >
+              🍔 Help a Foo Out!
             </button>
 
             {user ? (
@@ -198,6 +213,22 @@ export function Navbar({ onAuthClick, onPricingClick }: NavbarProps) {
         {/* Mobile Menu Dropdown */}
         {showMobileMenu && (
           <div className="md:hidden border-t py-4 space-y-3" style={{ borderColor: 'var(--border)' }}>
+            {/* Tip Jar Button - Always visible */}
+            <button
+              onClick={() => {
+                setShowMobileMenu(false);
+                onTipJarClick();
+              }}
+              className="w-full px-4 py-3 rounded-lg text-sm font-semibold transition-all"
+              style={{ 
+                backgroundColor: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border)'
+              }}
+            >
+              🍔 Help a Foo Out!
+            </button>
+
             {user ? (
               <>
                 {/* Pro Badge */}

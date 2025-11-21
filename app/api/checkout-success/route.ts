@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
     // Get user ID from metadata
     const userId = session.metadata?.userId;
     const planType = session.metadata?.planType || 'pro';
+    const subscriptionType = session.metadata?.subscriptionType; // 'af_voice' for AF Voice subscriptions
 
     if (!userId) {
       console.error('❌ No userId in session metadata');
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('💳 Payment verified! Upgrading user:', userId, 'to', planType);
+    console.log('💳 Payment verified! Subscription type:', subscriptionType || 'pro', 'for user:', userId);
 
     // Get subscription and customer details
     const subscriptionId = session.subscription as string;
@@ -107,6 +108,47 @@ export async function POST(request: NextRequest) {
 
     console.log('📊 Existing profile check:', { existingProfile, fetchError });
 
+    // Check if this is an AF Voice subscription
+    if (subscriptionType === 'af_voice') {
+      console.log('🎤 Processing AF Voice subscription...');
+      
+      if (existingProfile?.has_af_voice) {
+        console.log('ℹ️ User already has AF Voice');
+        return NextResponse.json({
+          success: true,
+          message: "Already has AF Voice Mode",
+          alreadyUpgraded: true
+        });
+      }
+
+      // Update profile with AF Voice access
+      const { data: afData, error: afError } = await supabase
+        .from("user_profiles")
+        .update({
+          has_af_voice: true,
+          af_voice_subscription_id: subscriptionId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
+        .select();
+
+      if (afError) {
+        console.error('❌ Failed to grant AF Voice access:', afError);
+        return NextResponse.json(
+          { error: "Failed to grant AF Voice access", details: afError.message },
+          { status: 500 }
+        );
+      }
+
+      console.log('✅ User successfully granted AF Voice access!');
+      return NextResponse.json({
+        success: true,
+        message: "Successfully subscribed to AF Voice Mode!",
+        user: afData?.[0]
+      });
+    }
+
+    // Regular Pro subscription handling
     if (existingProfile?.is_pro) {
       console.log('ℹ️ User is already Pro');
       return NextResponse.json({

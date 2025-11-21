@@ -5,6 +5,8 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { SecondaryButton } from "@/components/SecondaryButton";
 import { AuthModal } from "@/components/AuthModal";
 import { PricingModal } from "@/components/PricingModal";
+import { TipJarModal } from "@/components/TipJarModal";
+import { AFVoiceModal } from "@/components/AFVoiceModal";
 import { Notification } from "@/components/Notification";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,11 +23,13 @@ type Message = {
 };
 
 export default function FooChat() {
-  const { user, isPro, signOut } = useAuth();
+  const { user, isPro, hasAFVoice, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showTipJarModal, setShowTipJarModal] = useState(false);
+  const [showAFVoiceModal, setShowAFVoiceModal] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [useAdvancedVoice, setUseAdvancedVoice] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -51,6 +55,7 @@ export default function FooChat() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [messagesLeft, setMessagesLeft] = useState(10);
+  const [guestMessageCount, setGuestMessageCount] = useState(0);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   // AF mode image state
@@ -90,6 +95,39 @@ export default function FooChat() {
     isAFModeRef.current = isAFMode;
     console.log('🔄 isAFModeRef updated:', isAFMode);
   }, [isAFMode]);
+
+  // Load guest message count from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !user) {
+      const storedCount = localStorage.getItem('foochat_guestMessageCount');
+      const storedTimestamp = localStorage.getItem('foochat_guestMessageTimestamp');
+      
+      if (storedCount && storedTimestamp) {
+        const timestamp = parseInt(storedTimestamp);
+        const now = Date.now();
+        const hoursSinceLastMessage = (now - timestamp) / (1000 * 60 * 60);
+        
+        // Reset count after 24 hours
+        if (hoursSinceLastMessage >= 24) {
+          console.log('🔄 Guest message count expired (24h), resetting...');
+          localStorage.setItem('foochat_guestMessageCount', '0');
+          localStorage.setItem('foochat_guestMessageTimestamp', now.toString());
+          setGuestMessageCount(0);
+          setMessagesLeft(10);
+        } else {
+          const count = parseInt(storedCount);
+          console.log('📊 Loaded guest message count:', count);
+          setGuestMessageCount(count);
+          setMessagesLeft(Math.max(0, 10 - count));
+        }
+      } else {
+        // First time - initialize
+        console.log('🆕 First time guest - initializing message tracking');
+        localStorage.setItem('foochat_guestMessageCount', '0');
+        localStorage.setItem('foochat_guestMessageTimestamp', Date.now().toString());
+      }
+    }
+  }, [user]);
 
   // Set mounted to true after client hydration to prevent hydration mismatch
   useEffect(() => {
@@ -171,6 +209,77 @@ export default function FooChat() {
       } else if (upgrade === 'cancelled') {
         setNotification({ 
           message: 'Upgrade cancelled. You can try again anytime!', 
+          type: 'info' 
+        });
+        // Clean up URL
+        window.history.replaceState({}, '', '/');
+      }
+      
+      // Handle tip success
+      const tip = urlParams.get('tip');
+      const tipAmount = urlParams.get('amount');
+      
+      if (tip === 'success' && tipAmount) {
+        console.log('🍔 Successful tip received:', tipAmount);
+        setNotification({ 
+          message: `Thank you for your $${tipAmount} tip! 🍔 You're awesome!`, 
+          type: 'success' 
+        });
+        // Clean up URL
+        window.history.replaceState({}, '', '/');
+      } else if (tip === 'cancelled') {
+        setNotification({ 
+          message: 'Tip cancelled. Thanks for considering it!', 
+          type: 'info' 
+        });
+        // Clean up URL
+        window.history.replaceState({}, '', '/');
+      }
+      
+      // Handle AF Voice subscription success
+      const afvoice = urlParams.get('afvoice');
+      const afSessionId = urlParams.get('session_id');
+      
+      if (afvoice === 'success' && afSessionId) {
+        console.log('🎤 Successful AF Voice subscription detected, verifying...');
+        
+        try {
+          const response = await fetch('/api/checkout-success', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: afSessionId })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            console.log('✅ AF Voice subscription verified!');
+            setNotification({ 
+              message: '🎤 Welcome to AF Voice Mode! You can now use Advanced Foo Mode!', 
+              type: 'success' 
+            });
+            
+            // Refresh the page to update AF Voice status
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 2000);
+          } else {
+            console.error('❌ Failed to verify AF Voice subscription:', data);
+            setNotification({ 
+              message: 'Subscription received! Please refresh if AF Voice does not activate.', 
+              type: 'info' 
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error verifying AF Voice subscription:', error);
+          setNotification({ 
+            message: 'Subscription received! Please refresh if AF Voice does not activate.', 
+            type: 'info' 
+          });
+        }
+      } else if (afvoice === 'cancelled') {
+        setNotification({ 
+          message: 'AF Voice subscription cancelled. You can try again anytime!', 
           type: 'info' 
         });
         // Clean up URL
@@ -287,8 +396,22 @@ export default function FooChat() {
       return;
     }
 
-    // Check usage limits
-    if (!isPro && messagesLeft <= 0) {
+    // GUEST USER LIMIT: Block after 10 messages, require sign up
+    if (!user) {
+      if (guestMessageCount >= 10) {
+        console.log('🚫 Guest user has reached 10 message limit');
+        setNotification({ 
+          message: '🔒 Free trial complete! Sign up to keep chatting with Foo (it\'s free!)', 
+          type: 'info' 
+        });
+        setShowAuthModal(true);
+        return;
+      }
+      console.log(`📊 Guest message ${guestMessageCount + 1}/10`);
+    }
+
+    // Check usage limits for signed-in free users
+    if (user && !isPro && messagesLeft <= 0) {
       setNotification({ message: 'Daily limit reached! Upgrade to Foo Pro for unlimited chats.', type: 'error' });
       setShowPricingModal(true);
       return;
@@ -422,8 +545,18 @@ export default function FooChat() {
         }
       
         // Update messages left from server response
-        if (!isPro && data.messagesLeft !== undefined) {
+        if (user && !isPro && data.messagesLeft !== undefined) {
           setMessagesLeft(data.messagesLeft);
+        }
+        
+        // Increment guest message count
+        if (!user) {
+          const newCount = guestMessageCount + 1;
+          setGuestMessageCount(newCount);
+          setMessagesLeft(Math.max(0, 10 - newCount));
+          localStorage.setItem('foochat_guestMessageCount', newCount.toString());
+          localStorage.setItem('foochat_guestMessageTimestamp', Date.now().toString());
+          console.log(`✅ Guest message count: ${newCount}/10 (${10 - newCount} remaining)`);
         }
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
@@ -1588,6 +1721,16 @@ export default function FooChat() {
   };
 
   const startAdvancedFoo = async () => {
+    // Check AF Voice subscription
+    if (!hasAFVoice) {
+      setNotification({ 
+        message: '🎤 AF Voice Mode requires a subscription. Unlock it for just $4.99/mo!', 
+        type: 'info' 
+      });
+      setShowAFVoiceModal(true);
+      return;
+    }
+    
     // Check crisis lockout
     if (crisisLockoutUntil && crisisLockoutUntil > Date.now()) {
       const minutesLeft = Math.ceil((crisisLockoutUntil - Date.now()) / 60000);
@@ -2061,6 +2204,7 @@ export default function FooChat() {
       <Navbar 
         onAuthClick={() => setShowAuthModal(true)}
         onPricingClick={() => setShowPricingModal(true)}
+        onTipJarClick={() => setShowTipJarModal(true)}
       />
       
       <div className="min-h-screen flex flex-col landing-bg relative" style={{ 
@@ -2289,7 +2433,7 @@ export default function FooChat() {
                         </p>
                         {!isPro && (
                           <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                            • {messagesLeft}/10 left
+                            • {messagesLeft}/10 {user ? 'left today' : 'free messages'}
                           </span>
                         )}
                       </div>
@@ -2509,16 +2653,24 @@ export default function FooChat() {
                   <button
                     onClick={startAdvancedFoo}
                     disabled={isLoading || isListening || isRecording}
-                    className="p-4 md:p-3 rounded-2xl transition-all flex-shrink-0 hover:scale-110 active:scale-95 shadow-lg font-bold text-base md:text-sm min-w-[60px] md:min-w-[50px]"
+                    className="p-4 md:p-3 rounded-2xl transition-all flex-shrink-0 hover:scale-110 active:scale-95 shadow-lg font-bold text-base md:text-sm min-w-[60px] md:min-w-[50px] relative"
                     style={{ 
                       background: (isListening || isRecording)
                         ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
                         : 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)',
                       color: 'white',
-                      animation: (isListening || isRecording) ? 'pulse 1.5s ease-in-out infinite' : 'none'
+                      animation: (isListening || isRecording) ? 'pulse 1.5s ease-in-out infinite' : 'none',
+                      opacity: hasAFVoice ? 1 : 0.7
                     }}
-                    title={isMobile ? "Advanced Foo - Tap to record" : "Advanced Foo - Talk to Foo"}
+                    title={hasAFVoice 
+                      ? (isMobile ? "Advanced Foo - Tap to record" : "Advanced Foo - Talk to Foo")
+                      : "AF Voice Mode - Premium $4.99/mo - Click to unlock"}
                   >
+                    {!hasAFVoice && (
+                      <span className="absolute -top-1 -right-1 text-xs bg-yellow-500 text-black rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                        🔒
+                      </span>
+                    )}
                     {(isListening || isRecording) ? (
                       <span className="flex items-center gap-1 text-lg md:text-base">
                         <span className="inline-block w-2 h-2 bg-white rounded-full animate-ping"></span>
@@ -2553,13 +2705,23 @@ export default function FooChat() {
                 {/* Upgrade reminder for free users */}
                 {!isPro && messagesLeft <= 3 && messagesLeft > 0 && (
                   <div className="mt-2 text-center">
-                    <button
-                      onClick={() => setShowPricingModal(true)}
-                      className="text-xs transition-colors underline"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      Only {messagesLeft} messages left today • Upgrade to Pro for unlimited
-                    </button>
+                    {user ? (
+                      <button
+                        onClick={() => setShowPricingModal(true)}
+                        className="text-xs transition-colors underline"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        Only {messagesLeft} messages left today • Upgrade to Pro for unlimited
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowAuthModal(true)}
+                        className="text-xs transition-colors underline"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        Only {messagesLeft} free messages left • Sign up to continue (it's free!)
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -2791,6 +2953,12 @@ export default function FooChat() {
         
         {/* Pricing Modal */}
         {showPricingModal && <PricingModal onClose={() => setShowPricingModal(false)} />}
+        
+        {/* Tip Jar Modal */}
+        {showTipJarModal && <TipJarModal onClose={() => setShowTipJarModal(false)} />}
+        
+        {/* AF Voice Modal */}
+        {showAFVoiceModal && <AFVoiceModal onClose={() => setShowAFVoiceModal(false)} />}
       </div>
 
       {/* Notifications */}

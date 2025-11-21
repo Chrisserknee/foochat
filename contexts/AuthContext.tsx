@@ -9,6 +9,7 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   isPro: boolean;
+  hasAFVoice: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState(false);
+  const [hasAFVoice, setHasAFVoice] = useState(false);
 
   useEffect(() => {
     console.log('🚀 AuthProvider useEffect mounted');
@@ -65,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('is_pro, plan_type')
+          .select('is_pro, plan_type, has_af_voice')
           .eq('id', userId)
           .single();
 
@@ -73,9 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Success - reset failure count
           failureCount = 0;
           
-          // Set isPro status
+          // Set isPro and hasAFVoice status
           const proStatus = data.is_pro || false;
+          const afVoiceStatus = data.has_af_voice || false;
           setIsPro(proStatus);
+          setHasAFVoice(afVoiceStatus);
         } else if (error) {
           failureCount++;
           // Stop checking after 3 failures
@@ -180,6 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }, 300000); // 5 minutes
       } else {
         setIsPro(false);
+        setHasAFVoice(false);
         // Clear interval when user logs out
         if (intervalId) {
           clearInterval(intervalId);
@@ -386,6 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         session,
         loading,
         isPro,
+        hasAFVoice,
         signUp,
         signIn,
         signOut,
