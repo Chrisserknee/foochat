@@ -2222,11 +2222,10 @@ export default function FooChat() {
           setShowAuthModal(true);
         }}
         onPricingClick={() => setShowPricingModal(true)}
-        onTipJarClick={() => setShowTipJarModal(true)}
       />
       
-      {/* Floating Tip Button - TEMPORARILY REMOVED */}
-      {/* <button
+      {/* Floating Tip Button */}
+      <button
         onClick={() => setShowTipJarModal(true)}
         className="fixed left-[10%] sm:left-[25%] md:left-[32%] top-28 sm:top-32 z-50 px-3 sm:px-4 py-2 sm:py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-110 hover:brightness-110 animate-fadeIn flex flex-col items-center gap-1"
         style={{
@@ -2239,7 +2238,7 @@ export default function FooChat() {
         <span className="text-xl sm:text-2xl">🍔</span>
         <span className="text-xs whitespace-nowrap">Help a</span>
         <span className="text-xs whitespace-nowrap">Foo Out!</span>
-      </button> */}
+      </button>
       
       <div className="min-h-screen flex flex-col landing-bg relative" style={{ 
         background: 'linear-gradient(135deg, #f5e6d3 0%, #e8d5b7 100%)',
