@@ -65,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkProStatus = async (userId: string) => {
       try {
+        console.log('🔍 Checking Pro status for user:', userId);
         const { data, error } = await supabase
           .from('user_profiles')
           .select('is_pro, plan_type, has_af_voice')
@@ -75,12 +76,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Success - reset failure count
           failureCount = 0;
           
+          console.log('📊 User profile data:', {
+            is_pro: data.is_pro,
+            plan_type: data.plan_type,
+            has_af_voice: data.has_af_voice
+          });
+          
           // Set isPro and hasAFVoice status
           const proStatus = data.is_pro || false;
           const afVoiceStatus = data.has_af_voice || false;
+          
+          console.log('✅ Setting Pro status:', proStatus);
+          console.log('✅ Setting AF Voice status:', afVoiceStatus);
+          
           setIsPro(proStatus);
           setHasAFVoice(afVoiceStatus);
         } else if (error) {
+          console.error('❌ Error fetching Pro status:', error);
           failureCount++;
           // Stop checking after 3 failures
           if (failureCount >= 3 && intervalId) {
@@ -89,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
+        console.error('❌ Exception checking Pro status:', error);
         failureCount++;
         // Stop checking after 3 failures
         if (failureCount >= 3 && intervalId) {

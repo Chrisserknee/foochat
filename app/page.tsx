@@ -183,28 +183,37 @@ export default function FooChat() {
           
           if (response.ok) {
             console.log('✅ Payment verified and user upgraded!');
+            console.log('Updated user data:', data.user);
             setNotification({ 
               message: '🎉 Welcome to Foo Pro! You now have unlimited messages!', 
               type: 'success' 
             });
             
-            // Refresh the page to update Pro status
+            // Clean up URL immediately
+            window.history.replaceState({}, '', '/');
+            
+            // Force a hard reload to refresh all auth state
             setTimeout(() => {
-              window.location.href = '/';
+              console.log('🔄 Force reloading page to update Pro status...');
+              window.location.reload();
             }, 2000);
           } else {
             console.error('❌ Failed to verify payment:', data);
             setNotification({ 
-              message: 'Payment received! Please refresh if Pro status does not update.', 
+              message: 'Payment received! Please sign out and sign back in to see Pro status.', 
               type: 'info' 
             });
+            // Clean up URL
+            window.history.replaceState({}, '', '/');
           }
         } catch (error) {
           console.error('❌ Error verifying payment:', error);
           setNotification({ 
-            message: 'Payment received! Please refresh if Pro status does not update.', 
+            message: 'Payment received! Please sign out and sign back in to see Pro status.', 
             type: 'info' 
           });
+          // Clean up URL
+          window.history.replaceState({}, '', '/');
         }
       } else if (upgrade === 'cancelled') {
         setNotification({ 
