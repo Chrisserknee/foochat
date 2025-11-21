@@ -67,11 +67,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkProStatus = async (userId: string) => {
       try {
         console.log('🔍 Checking Pro status for user:', userId);
-        const { data, error } = await supabase
+        
+        // Try with all fields first
+        let { data, error } = await supabase
           .from('user_profiles')
           .select('is_pro, plan_type, has_af_voice')
           .eq('id', userId)
           .single();
+
+        // If has_af_voice column doesn't exist, try without it
+        if (error && error.code === '42703') {
+          console.warn('⚠️ has_af_voice column missing, trying without it...');
+          const fallbackQuery = await supabase
+            .from('user_profiles')
+            .select('is_pro, plan_type')
+            .eq('id', userId)
+            .single();
+          
+          data = fallbackQuery.data ? { ...fallbackQuery.data, has_af_voice: undefined } : null;
+          error = fallbackQuery.error;
+        }
 
         if (!error && data) {
           // Success - reset failure count
@@ -80,12 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('📊 User profile data:', {
             is_pro: data.is_pro,
             plan_type: data.plan_type,
-            has_af_voice: data.has_af_voice
+            has_af_voice: (data as any).has_af_voice
           });
           
-          // Set isPro and hasAFVoice status
+          // Set isPro and hasAFVoice status (with safe fallback)
           const proStatus = data.is_pro || false;
-          const afVoiceStatus = data.has_af_voice || false;
+          const afVoiceStatus = (data as any).has_af_voice || false;
           
           console.log('✅ Setting Pro status:', proStatus);
           console.log('✅ Setting AF Voice status:', afVoiceStatus);
@@ -407,21 +422,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('🔄 Manually refreshing Pro status for user:', user.id);
     
     try {
-      const { data, error } = await supabase
+      // Try with all fields first
+      let { data, error } = await supabase
         .from('user_profiles')
         .select('is_pro, plan_type, has_af_voice')
         .eq('id', user.id)
         .single();
 
+      // If has_af_voice column doesn't exist, try without it
+      if (error && error.code === '42703') {
+        console.warn('⚠️ has_af_voice column missing, trying without it...');
+        const fallbackQuery = await supabase
+          .from('user_profiles')
+          .select('is_pro, plan_type')
+          .eq('id', user.id)
+          .single();
+        
+        data = fallbackQuery.data ? { ...fallbackQuery.data, has_af_voice: undefined } : null;
+        error = fallbackQuery.error;
+      }
+
       if (!error && data) {
         console.log('✅ Refreshed Pro status:', {
           is_pro: data.is_pro,
           plan_type: data.plan_type,
-          has_af_voice: data.has_af_voice
+          has_af_voice: (data as any).has_af_voice
         });
         
         setIsPro(data.is_pro || false);
-        setHasAFVoice(data.has_af_voice || false);
+        setHasAFVoice((data as any).has_af_voice || false);
       } else {
         console.error('❌ Error refreshing Pro status:', error);
       }

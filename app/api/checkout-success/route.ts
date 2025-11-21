@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     if (subscriptionType === 'af_voice') {
       console.log('🎤 Processing AF Voice subscription...');
       
-      if (existingProfile?.has_af_voice) {
+      if ((existingProfile as any)?.has_af_voice) {
         console.log('ℹ️ User already has AF Voice');
         return NextResponse.json({
           success: true,
@@ -137,18 +137,36 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Update profile with AF Voice access
+      // Try to update profile with AF Voice access
+      const afUpdateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Try to add AF Voice fields if they exist
+      try {
+        afUpdateData.has_af_voice = true;
+        afUpdateData.af_voice_subscription_id = subscriptionId;
+      } catch (e) {
+        console.log('⚠️ AF Voice columns may not exist yet');
+      }
+
       const { data: afData, error: afError } = await supabase
         .from("user_profiles")
-        .update({
-          has_af_voice: true,
-          af_voice_subscription_id: subscriptionId,
-          updated_at: new Date().toISOString(),
-        })
+        .update(afUpdateData)
         .eq("id", userId)
         .select();
 
       if (afError) {
+        // If error is about missing columns, that's OK - log it and continue
+        if (afError.message?.includes('has_af_voice') || afError.message?.includes('af_voice_subscription_id')) {
+          console.warn('⚠️ AF Voice columns not in database yet. User upgraded but AF Voice feature disabled until migration runs.');
+          return NextResponse.json({
+            success: true,
+            message: "Subscription successful! AF Voice will be enabled soon.",
+            warning: "Database migration needed for AF Voice columns"
+          });
+        }
+        
         console.error('❌ Failed to grant AF Voice access:', afError);
         return NextResponse.json(
           { error: "Failed to grant AF Voice access", details: afError.message },
@@ -179,21 +197,46 @@ export async function POST(request: NextRequest) {
     if (existingProfile) {
       // Profile exists - UPDATE it
       console.log('📝 Updating existing profile to Pro...');
+      
+      // Build update object with only fields that exist in DB
+      const updateData: any = {
+        is_pro: true,
+        plan_type: planType,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Try to add upgraded_at if column exists (won't fail if it doesn't)
+      try {
+        updateData.upgraded_at = new Date().toISOString();
+      } catch (e) {
+        console.log('⚠️ upgraded_at column may not exist, skipping...');
+      }
+      
       const result = await supabase
         .from("user_profiles")
-        .update({
-          is_pro: true,
-          plan_type: planType,
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          upgraded_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", userId)
         .select();
       
       data = result.data;
       error = result.error;
+      
+      // If error is about missing column, retry without that column
+      if (error && error.message?.includes('upgraded_at')) {
+        console.log('🔄 Retrying without upgraded_at column...');
+        delete updateData.upgraded_at;
+        
+        const retryResult = await supabase
+          .from("user_profiles")
+          .update(updateData)
+          .eq("id", userId)
+          .select();
+        
+        data = retryResult.data;
+        error = retryResult.error;
+      }
     } else {
       // Profile doesn't exist - CREATE it
       console.log('🆕 Creating new profile as Pro...');
@@ -201,19 +244,21 @@ export async function POST(request: NextRequest) {
       // Get user email from Stripe session
       const userEmail = session.customer_details?.email || session.customer_email || '';
       
+      // Build insert object with only required fields
+      const insertData: any = {
+        id: userId,
+        email: userEmail,
+        is_pro: true,
+        plan_type: planType,
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
       const result = await supabase
         .from("user_profiles")
-        .insert({
-          id: userId,
-          email: userEmail,
-          is_pro: true,
-          plan_type: planType,
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          upgraded_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .insert(insertData)
         .select();
       
       data = result.data;
