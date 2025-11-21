@@ -2405,6 +2405,19 @@ export default function FooChat() {
                 background: 'var(--bg-secondary)'
               }}>
                 <div className="flex items-center gap-3">
+                  {/* Tip Button floating to left of avatar */}
+                  <button
+                    onClick={() => setShowTipJarModal(true)}
+                    className="px-2 py-1 rounded-full text-xs font-semibold transition-all hover:scale-105 hover:brightness-110 shadow-md flex items-center gap-1"
+                    style={{
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      color: 'white'
+                    }}
+                    title="Support FooChat"
+                  >
+                    🍔 Tip
+                  </button>
+                  
                   <Image 
                     src="/icons/Foo.png" 
                     alt="Foo" 
