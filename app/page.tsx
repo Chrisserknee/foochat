@@ -2367,7 +2367,7 @@ export default function FooChat() {
                     borderColor: '#8b6f47'
                   }}
                 >
-                  ⚡ Go Pro - $5/mo
+                  ⚡ Go Pro - $0.50/mo
                 </button>
               </div>
               
