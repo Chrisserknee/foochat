@@ -6,12 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
 type NavbarProps = {
-  onAuthClick: () => void;
+  onSignInClick: () => void;
+  onSignUpClick: () => void;
   onPricingClick: () => void;
   onTipJarClick: () => void;
 };
 
-export function Navbar({ onAuthClick, onPricingClick, onTipJarClick }: NavbarProps) {
+export function Navbar({ onSignInClick, onSignUpClick, onPricingClick, onTipJarClick }: NavbarProps) {
   const { user, isPro, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -149,7 +150,7 @@ export function Navbar({ onAuthClick, onPricingClick, onTipJarClick }: NavbarPro
               <>
                 {/* Sign In Button */}
                 <button
-                  onClick={onAuthClick}
+                  onClick={onSignInClick}
                   className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105"
                   style={{ 
                     backgroundColor: 'var(--bg-secondary)',
@@ -162,7 +163,7 @@ export function Navbar({ onAuthClick, onPricingClick, onTipJarClick }: NavbarPro
 
                 {/* Sign Up Button */}
                 <button
-                  onClick={onAuthClick}
+                  onClick={onSignUpClick}
                   className="px-4 py-2 rounded-lg text-sm font-bold transition-all hover:scale-105 shadow-md"
                   style={{ 
                     background: 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)',
@@ -292,7 +293,7 @@ export function Navbar({ onAuthClick, onPricingClick, onTipJarClick }: NavbarPro
                 <button
                   onClick={() => {
                     setShowMobileMenu(false);
-                    onAuthClick();
+                    onSignInClick();
                   }}
                   className="w-full px-4 py-3 rounded-lg text-sm font-semibold transition-all"
                   style={{ 
@@ -306,7 +307,7 @@ export function Navbar({ onAuthClick, onPricingClick, onTipJarClick }: NavbarPro
                 <button
                   onClick={() => {
                     setShowMobileMenu(false);
-                    onAuthClick();
+                    onSignUpClick();
                   }}
                   className="w-full px-4 py-3 rounded-lg text-sm font-bold transition-all shadow-md"
                   style={{ 

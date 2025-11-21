@@ -6,10 +6,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 type AuthModalProps = {
   onClose: () => void;
+  initialMode?: 'signin' | 'signup';
 };
 
-export function AuthModal({ onClose }: AuthModalProps) {
-  const initialMode = 'signin';
+export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

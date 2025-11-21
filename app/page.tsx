@@ -27,6 +27,7 @@ export default function FooChat() {
   const { theme, toggleTheme } = useTheme();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showTipJarModal, setShowTipJarModal] = useState(false);
   const [showAFVoiceModal, setShowAFVoiceModal] = useState(false);
@@ -413,6 +414,7 @@ export default function FooChat() {
           message: '🔒 Free trial complete! Sign up to keep chatting with Foo (it\'s free!)', 
           type: 'info' 
         });
+        setAuthModalMode('signup'); // Direct users to sign up when they hit the limit
         setShowAuthModal(true);
         return;
       }
@@ -2211,7 +2213,14 @@ export default function FooChat() {
     <>
       {/* Navbar at the top */}
       <Navbar 
-        onAuthClick={() => setShowAuthModal(true)}
+        onSignInClick={() => {
+          setAuthModalMode('signin');
+          setShowAuthModal(true);
+        }}
+        onSignUpClick={() => {
+          setAuthModalMode('signup');
+          setShowAuthModal(true);
+        }}
         onPricingClick={() => setShowPricingModal(true)}
         onTipJarClick={() => setShowTipJarModal(true)}
       />
@@ -2374,7 +2383,10 @@ export default function FooChat() {
               {!user && (
                 <p className="text-xs md:text-sm landing-text-secondary" style={{ color: '#6b5744' }}>
                   <button 
-                    onClick={() => setShowAuthModal(true)}
+                    onClick={() => {
+                      setAuthModalMode('signin');
+                      setShowAuthModal(true);
+                    }}
                     className="underline hover:no-underline"
                   >
                     Sign in
@@ -2753,7 +2765,10 @@ export default function FooChat() {
                       </button>
                     ) : (
                       <button
-                        onClick={() => setShowAuthModal(true)}
+                        onClick={() => {
+                          setAuthModalMode('signup');
+                          setShowAuthModal(true);
+                        }}
                         className="text-xs transition-colors underline"
                         style={{ color: 'var(--text-secondary)' }}
                       >
@@ -2987,7 +3002,7 @@ export default function FooChat() {
         )}
 
         {/* Auth Modal */}
-        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} initialMode={authModalMode} />}
         
         {/* Pricing Modal */}
         {showPricingModal && <PricingModal onClose={() => setShowPricingModal(false)} />}
