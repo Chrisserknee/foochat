@@ -2207,6 +2207,22 @@ export default function FooChat() {
         onTipJarClick={() => setShowTipJarModal(true)}
       />
       
+      {/* Floating Tip Button - Left Side */}
+      <button
+        onClick={() => setShowTipJarModal(true)}
+        className="fixed left-4 top-1/2 -translate-y-1/2 z-50 px-4 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-110 hover:brightness-110 animate-fadeIn hidden md:flex flex-col items-center gap-1"
+        style={{
+          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+          color: 'white',
+          writingMode: 'horizontal-tb'
+        }}
+        title="Help a Foo Out!"
+      >
+        <span className="text-2xl">🍔</span>
+        <span className="text-xs whitespace-nowrap">Help a</span>
+        <span className="text-xs whitespace-nowrap">Foo Out!</span>
+      </button>
+      
       <div className="min-h-screen flex flex-col landing-bg relative" style={{ 
         background: 'linear-gradient(135deg, #f5e6d3 0%, #e8d5b7 100%)',
       }}>
