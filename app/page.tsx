@@ -32,6 +32,7 @@ export default function FooChat() {
   const [showTipJarModal, setShowTipJarModal] = useState(false);
   const [showAFVoiceModal, setShowAFVoiceModal] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [useAdvancedVoice, setUseAdvancedVoice] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isAFMode, setIsAFMode] = useState(false);
@@ -2222,23 +2223,26 @@ export default function FooChat() {
           setShowAuthModal(true);
         }}
         onPricingClick={() => setShowPricingModal(true)}
+        onMobileMenuChange={setIsMobileMenuOpen}
       />
       
-      {/* Floating Tip Button */}
-      <button
-        onClick={() => setShowTipJarModal(true)}
-        className="fixed left-[10%] sm:left-[25%] md:left-[32%] top-28 sm:top-32 z-50 px-3 sm:px-4 py-2 sm:py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-110 hover:brightness-110 animate-fadeIn flex flex-col items-center gap-1"
-        style={{
-          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-          color: 'white',
-          writingMode: 'horizontal-tb'
-        }}
-        title="Help a Foo Out!"
-      >
-        <span className="text-xl sm:text-2xl">🍔</span>
-        <span className="text-xs whitespace-nowrap">Help a</span>
-        <span className="text-xs whitespace-nowrap">Foo Out!</span>
-      </button>
+      {/* Floating Tip Button - Hidden when mobile menu is open */}
+      {!isMobileMenuOpen && (
+        <button
+          onClick={() => setShowTipJarModal(true)}
+          className="fixed left-[10%] sm:left-[25%] md:left-[32%] top-28 sm:top-32 z-50 px-3 sm:px-4 py-2 sm:py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-110 hover:brightness-110 animate-fadeIn flex flex-col items-center gap-1"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            color: 'white',
+            writingMode: 'horizontal-tb'
+          }}
+          title="Help a Foo Out!"
+        >
+          <span className="text-xl sm:text-2xl">🍔</span>
+          <span className="text-xs whitespace-nowrap">Help a</span>
+          <span className="text-xs whitespace-nowrap">Foo Out!</span>
+        </button>
+      )}
       
       <div className="min-h-screen flex flex-col landing-bg relative" style={{ 
         background: 'linear-gradient(135deg, #f5e6d3 0%, #e8d5b7 100%)',

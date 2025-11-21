@@ -9,9 +9,10 @@ type NavbarProps = {
   onSignInClick: () => void;
   onSignUpClick: () => void;
   onPricingClick: () => void;
+  onMobileMenuChange?: (isOpen: boolean) => void;
 };
 
-export function Navbar({ onSignInClick, onSignUpClick, onPricingClick }: NavbarProps) {
+export function Navbar({ onSignInClick, onSignUpClick, onPricingClick, onMobileMenuChange }: NavbarProps) {
   const { user, isPro, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -21,6 +22,13 @@ export function Navbar({ onSignInClick, onSignUpClick, onPricingClick }: NavbarP
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Notify parent when mobile menu state changes
+  React.useEffect(() => {
+    if (onMobileMenuChange) {
+      onMobileMenuChange(showMobileMenu);
+    }
+  }, [showMobileMenu, onMobileMenuChange]);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
