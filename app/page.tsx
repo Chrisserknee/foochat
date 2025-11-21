@@ -2210,7 +2210,7 @@ export default function FooChat() {
       {/* Floating Tip Button - Left Side */}
       <button
         onClick={() => setShowTipJarModal(true)}
-        className="fixed left-4 top-32 z-50 px-4 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-110 hover:brightness-110 animate-fadeIn hidden md:flex flex-col items-center gap-1"
+        className="fixed left-[20%] top-32 z-50 px-4 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-110 hover:brightness-110 animate-fadeIn hidden md:flex flex-col items-center gap-1"
         style={{
           background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
           color: 'white',
