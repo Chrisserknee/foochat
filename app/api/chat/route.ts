@@ -300,11 +300,15 @@ export async function POST(request: NextRequest) {
     }
 
     // If there's an image, analyze it
+    // Save image buffer for later use (File can only be read once)
+    let imageBuffer: Buffer | null = null;
+    let imageDataUrl: string | null = null;
+    
     if (image) {
       console.log('📸 Processing image for vision analysis...');
-      const imageBuffer = Buffer.from(await image.arrayBuffer());
+      imageBuffer = Buffer.from(await image.arrayBuffer());
       const base64Image = imageBuffer.toString('base64');
-      const imageDataUrl = `data:${image.type};base64,${base64Image}`;
+      imageDataUrl = `data:${image.type};base64,${base64Image}`;
       
       console.log(`📸 Image size: ${(imageBuffer.length / 1024).toFixed(2)}KB`);
       
@@ -510,77 +514,99 @@ ${turnInstructions}
     }
 
     // Save chat history to database (for both signed-in users and guests)
-    if (userId || guestSessionId) {
+    // IMPORTANT: This runs AFTER the response is sent, so errors won't affect the user
+    const saveChatHistory = async () => {
+      if (!userId && !guestSessionId) {
+        console.log('ℹ️ Skipping chat history save: No userId or guestSessionId provided');
+        return;
+      }
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       
-      if (supabaseUrl && supabaseServiceKey) {
-        try {
-          const { createClient } = await import('@supabase/supabase-js');
-          // Use service role key to bypass RLS for server-side inserts
-          const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-            auth: {
-              autoRefreshToken: false,
-              persistSession: false
-            }
-          });
-          
-          const identifier = userId || `guest:${guestSessionId}`;
-          console.log('💾 Attempting to save chat history for:', identifier);
-          
-          // Save user message
-          const userImageUrl = image ? `data:${image.type};base64,${Buffer.from(await image.arrayBuffer()).toString('base64')}` : null;
-          
-          const { data: userMsgData, error: userMsgError } = await supabase
-            .from('chat_messages')
-            .insert({
-              user_id: userId || null,
-              guest_session_id: guestSessionId || null,
-              role: 'user',
-              content: message || (image ? '[Image sent]' : ''),
-              image_url: userImageUrl, // Store base64 image data URL
-              created_at: new Date().toISOString()
-            })
-            .select();
-
-          if (userMsgError) {
-            console.error('⚠️ Failed to save user message:', userMsgError);
-            console.error('⚠️ Error details:', JSON.stringify(userMsgError, null, 2));
-          } else {
-            console.log('✅ Saved user message to database:', userMsgData?.[0]?.id);
-          }
-
-          // Save assistant response
-          const { data: assistantMsgData, error: assistantMsgError } = await supabase
-            .from('chat_messages')
-            .insert({
-              user_id: userId || null,
-              guest_session_id: guestSessionId || null,
-              role: 'assistant',
-              content: fooResponse,
-              audio_url: audioUrl || null,
-              created_at: new Date().toISOString()
-            })
-            .select();
-
-          if (assistantMsgError) {
-            console.error('⚠️ Failed to save assistant message:', assistantMsgError);
-            console.error('⚠️ Error details:', JSON.stringify(assistantMsgError, null, 2));
-          } else {
-            console.log('✅ Saved assistant message to database:', assistantMsgData?.[0]?.id);
-          }
-        } catch (saveError: any) {
-          // Don't fail the request if saving fails - just log it
-          console.error('⚠️ Error saving chat history:', saveError);
-          console.error('⚠️ Error stack:', saveError.stack);
-        }
-      } else {
+      if (!supabaseUrl || !supabaseServiceKey) {
         console.warn('⚠️ Cannot save chat history: Missing Supabase URL or Service Role Key');
         console.warn('⚠️ Supabase URL:', !!supabaseUrl, 'Service Key:', !!supabaseServiceKey);
+        return;
       }
-    } else {
-      console.log('ℹ️ Skipping chat history save: No userId or guestSessionId provided');
-    }
+
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        // Use service role key to bypass RLS for server-side inserts
+        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        });
+        
+        const identifier = userId || `guest:${guestSessionId}`;
+        console.log('💾 [CHAT SAVE] Attempting to save chat history for:', identifier);
+        console.log('💾 [CHAT SAVE] Has userId:', !!userId, 'Has guestSessionId:', !!guestSessionId);
+        
+        // Use saved image buffer (already read earlier)
+        const userImageUrl = imageDataUrl; // Reuse the imageDataUrl we created earlier
+        
+        // Save user message
+        const userMessageContent = message || (image ? '[Image sent]' : '');
+        console.log('💾 [CHAT SAVE] Saving user message, content length:', userMessageContent.length);
+        
+        const { data: userMsgData, error: userMsgError } = await supabase
+          .from('chat_messages')
+          .insert({
+            user_id: userId || null,
+            guest_session_id: guestSessionId || null,
+            role: 'user',
+            content: userMessageContent,
+            image_url: userImageUrl,
+            created_at: new Date().toISOString()
+          })
+          .select();
+
+        if (userMsgError) {
+          console.error('❌ [CHAT SAVE] Failed to save user message:', userMsgError);
+          console.error('❌ [CHAT SAVE] Error code:', userMsgError.code);
+          console.error('❌ [CHAT SAVE] Error message:', userMsgError.message);
+          console.error('❌ [CHAT SAVE] Error details:', JSON.stringify(userMsgError, null, 2));
+        } else {
+          console.log('✅ [CHAT SAVE] Saved user message to database:', userMsgData?.[0]?.id);
+        }
+
+        // Save assistant response
+        console.log('💾 [CHAT SAVE] Saving assistant message, content length:', fooResponse.length);
+        
+        const { data: assistantMsgData, error: assistantMsgError } = await supabase
+          .from('chat_messages')
+          .insert({
+            user_id: userId || null,
+            guest_session_id: guestSessionId || null,
+            role: 'assistant',
+            content: fooResponse,
+            audio_url: audioUrl || null,
+            created_at: new Date().toISOString()
+          })
+          .select();
+
+        if (assistantMsgError) {
+          console.error('❌ [CHAT SAVE] Failed to save assistant message:', assistantMsgError);
+          console.error('❌ [CHAT SAVE] Error code:', assistantMsgError.code);
+          console.error('❌ [CHAT SAVE] Error message:', assistantMsgError.message);
+          console.error('❌ [CHAT SAVE] Error details:', JSON.stringify(assistantMsgError, null, 2));
+        } else {
+          console.log('✅ [CHAT SAVE] Saved assistant message to database:', assistantMsgData?.[0]?.id);
+        }
+      } catch (saveError: any) {
+        // Don't fail the request if saving fails - just log it
+        console.error('❌ [CHAT SAVE] Error saving chat history:', saveError);
+        console.error('❌ [CHAT SAVE] Error message:', saveError.message);
+        console.error('❌ [CHAT SAVE] Error stack:', saveError.stack);
+      }
+    };
+
+    // Save asynchronously (don't await - let it run in background)
+    saveChatHistory().catch(err => {
+      console.error('❌ [CHAT SAVE] Unhandled error in saveChatHistory:', err);
+    });
 
     // Return response with usage info
     const responseData: any = {
