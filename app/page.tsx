@@ -2633,79 +2633,123 @@ export default function FooChat() {
                 className="flex-1 overflow-y-auto px-4 py-6 space-y-4"
                 style={{ minHeight: 0 }}
               >
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
-                  >
-                    {/* Foo Avatar for assistant messages */}
-                    {msg.role === 'assistant' && (
-                      <div className="flex-shrink-0 mr-2">
-                        <Image 
-                          src="/icons/Foo.png" 
-                          alt="Foo" 
-                          width={32} 
-                          height={32}
-                          className="rounded-full shadow-lg"
-                          unoptimized
-                        />
-                      </div>
-                    )}
-                    
+                {messages.map((msg, index) => {
+                  // Format timestamp
+                  const timeStr = msg.timestamp.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                  });
+                  
+                  // Check if this is a new "conversation turn" (user message followed by assistant)
+                  const isNewTurn = index > 0 && messages[index - 1].role === 'user' && msg.role === 'assistant';
+                  
+                  return (
                     <div
-                      className={`max-w-[85%] sm:max-w-[70%] ${
-                        msg.role === 'user' 
-                          ? 'rounded-3xl rounded-br-lg shadow-lg' 
-                          : 'rounded-3xl rounded-bl-lg shadow-md'
-                      }`}
-                      style={{
-                        background: msg.role === 'user' 
-                          ? 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)'
-                          : 'var(--bg-secondary)',
-                        color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                        border: msg.role === 'assistant' ? '2px solid var(--border)' : 'none'
-                      }}
+                      key={msg.id}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn ${isNewTurn ? 'mt-6' : ''}`}
                     >
-                      <div className="px-5 py-3">
-                        {msg.imageUrl && (
-                          <img 
-                            src={msg.imageUrl} 
-                            alt="Shared" 
-                            className="rounded-xl mb-3 w-full shadow-md"
-                            style={{ maxHeight: '250px', objectFit: 'cover' }}
+                      {/* Foo Avatar for assistant messages */}
+                      {msg.role === 'assistant' && (
+                        <div className="flex-shrink-0 mr-3 mt-1">
+                          <Image 
+                            src="/icons/Foo.png" 
+                            alt="Foo" 
+                            width={36} 
+                            height={36}
+                            className="rounded-full shadow-lg border-2"
+                            style={{ borderColor: 'var(--border)' }}
+                            unoptimized
                           />
-                        )}
-                        
-                        <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
-                          {msg.content}
-                        </p>
-                        
-                        <div className="flex items-center justify-between mt-2 pt-2" style={{
-                          borderTop: msg.audioUrl ? '1px solid rgba(255,255,255,0.1)' : 'none'
-                        }}>
-                          <div className="text-xs opacity-60">
-                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
+                      
+                      <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%]`}>
+                        {/* Message bubble */}
+                        <div
+                          className={`${
+                            msg.role === 'user' 
+                              ? 'rounded-2xl rounded-br-md shadow-lg' 
+                              : 'rounded-2xl rounded-bl-md shadow-md'
+                          }`}
+                          style={{
+                            background: msg.role === 'user' 
+                              ? 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)'
+                              : 'var(--bg-secondary)',
+                            color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
+                            border: msg.role === 'assistant' ? '2px solid var(--border)' : 'none',
+                            boxShadow: msg.role === 'user' 
+                              ? '0 4px 12px rgba(139, 111, 71, 0.3)' 
+                              : '0 2px 8px rgba(0, 0, 0, 0.1)'
+                          }}
+                        >
+                          <div className="px-4 py-3">
+                            {msg.imageUrl && (
+                              <img 
+                                src={msg.imageUrl} 
+                                alt="Shared" 
+                                className="rounded-lg mb-3 w-full shadow-md"
+                                style={{ maxHeight: '250px', objectFit: 'cover' }}
+                              />
+                            )}
+                            
+                            {/* Message content with better typography */}
+                            <div className="space-y-1">
+                              <p 
+                                className="text-[15px] leading-[1.6] whitespace-pre-wrap break-words"
+                                style={{
+                                  fontFamily: msg.role === 'user' ? 'system-ui, -apple-system' : 'inherit',
+                                  fontWeight: msg.role === 'user' ? '500' : '400',
+                                  letterSpacing: msg.role === 'user' ? '0.01em' : 'normal'
+                                }}
+                              >
+                                {msg.content}
+                              </p>
+                            </div>
+                            
+                            {/* Audio player for Foo's voice messages */}
+                            {msg.role === 'assistant' && msg.audioUrl && (
+                              <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
+                                <audio 
+                                  controls 
+                                  className="w-full h-8"
+                                  style={{ 
+                                    filter: theme === 'dark' ? 'invert(1) hue-rotate(180deg)' : 'none'
+                                  }}
+                                >
+                                  <source src={msg.audioUrl} type="audio/mpeg" />
+                                </audio>
+                              </div>
+                            )}
                           </div>
-                          
-                          {/* Free for testing - was: msg.audioUrl && isPro */}
-                          {msg.audioUrl && (
-                            <button
-                              onClick={() => playAudio(msg.audioUrl!, msg.id)}
-                              className="text-xs px-3 py-1 rounded-full font-medium transition-all hover:scale-105"
-                              style={{ 
-                                background: msg.role === 'user' ? 'rgba(255,255,255,0.2)' : 'var(--accent-purple)',
-                                color: 'white'
-                              }}
-                              title="Play Foo's voice"
-                            >
-                              🔊 Play
-                            </button>
-                          )}
+                        </div>
+                        
+                        {/* Timestamp */}
+                        <div 
+                          className="mt-1.5 px-2 text-[11px] opacity-70"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          {timeStr}
                         </div>
                       </div>
+                      
+                      {/* User avatar/icon for user messages */}
+                      {msg.role === 'user' && (
+                        <div className="flex-shrink-0 ml-3 mt-1">
+                          <div 
+                            className="w-9 h-9 rounded-full flex items-center justify-center shadow-md font-bold text-sm"
+                            style={{
+                              background: 'linear-gradient(135deg, #8b6f47 0%, #6b5438 100%)',
+                              color: 'white'
+                            }}
+                          >
+                            {user?.email?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {isLoading && (
                   <div className="flex justify-start animate-fadeIn">
