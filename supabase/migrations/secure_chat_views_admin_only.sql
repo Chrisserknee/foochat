@@ -6,17 +6,26 @@
 -- Step 1: Revoke all public access from views
 REVOKE ALL ON chat_messages_readable FROM PUBLIC;
 REVOKE ALL ON chat_conversations FROM PUBLIC;
+REVOKE ALL ON conversation_threads FROM PUBLIC;
+REVOKE ALL ON user_messages_only FROM PUBLIC;
+REVOKE ALL ON q_and_a_view FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION get_conversation_thread FROM PUBLIC;
 
 -- Step 2: Revoke access from authenticated users (regular users)
 REVOKE SELECT ON chat_messages_readable FROM authenticated;
 REVOKE SELECT ON chat_conversations FROM authenticated;
+REVOKE SELECT ON conversation_threads FROM authenticated;
+REVOKE SELECT ON user_messages_only FROM authenticated;
+REVOKE SELECT ON q_and_a_view FROM authenticated;
 REVOKE EXECUTE ON FUNCTION get_conversation_thread FROM authenticated;
 
 -- Step 3: Grant access ONLY to service_role (admin/you)
 -- This ensures only admin access via Supabase Dashboard or service_role key can view chats
 GRANT SELECT ON chat_messages_readable TO service_role;
 GRANT SELECT ON chat_conversations TO service_role;
+GRANT SELECT ON conversation_threads TO service_role;
+GRANT SELECT ON user_messages_only TO service_role;
+GRANT SELECT ON q_and_a_view TO service_role;
 GRANT EXECUTE ON FUNCTION get_conversation_thread TO service_role;
 
 -- Step 4: Create admin-only functions with SECURITY DEFINER
