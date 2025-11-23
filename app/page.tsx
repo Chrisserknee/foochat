@@ -131,6 +131,55 @@ export default function FooChat() {
     }
   }, [user]);
 
+  // Load chat history for signed-in users
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      if (!user?.id) return;
+
+      try {
+        console.log('📚 Loading chat history for user:', user.id);
+        const response = await fetch(`/api/chat-history?userId=${user.id}&limit=100`);
+        
+        if (!response.ok) {
+          console.error('⚠️ Failed to load chat history');
+          return;
+        }
+
+        const data = await response.json();
+        
+        if (data.messages && data.messages.length > 0) {
+          // Convert timestamp strings to Date objects
+          const loadedMessages: Message[] = data.messages.map((msg: any) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            imageUrl: msg.imageUrl,
+            audioUrl: msg.audioUrl,
+            timestamp: new Date(msg.timestamp)
+          }));
+
+          console.log(`✅ Loaded ${loadedMessages.length} messages from history`);
+          
+          // Replace messages with loaded history
+          // If there's history, use it; otherwise keep the welcome message
+          if (loadedMessages.length > 0) {
+            setMessages(loadedMessages);
+          } else {
+            // No history - keep welcome message
+            console.log('📭 No history found, keeping welcome message');
+          }
+        } else {
+          console.log('📭 No chat history found, starting fresh');
+        }
+      } catch (error) {
+        console.error('❌ Error loading chat history:', error);
+        // Don't show error to user - just continue with empty chat
+      }
+    };
+
+    loadChatHistory();
+  }, [user?.id]);
+
   // Set mounted to true after client hydration to prevent hydration mismatch
   useEffect(() => {
     setMounted(true);

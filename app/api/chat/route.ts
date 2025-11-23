@@ -508,7 +508,57 @@ ${turnInstructions}
       }
     }
 
-    // TODO: Save chat history
+    // Save chat history to database (only for signed-in users)
+    if (userId) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (supabaseUrl && supabaseServiceKey) {
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          
+          // Save user message
+          const userImageUrl = image ? `data:${image.type};base64,${Buffer.from(await image.arrayBuffer()).toString('base64')}` : null;
+          
+          const { error: userMsgError } = await supabase
+            .from('chat_messages')
+            .insert({
+              user_id: userId,
+              role: 'user',
+              content: message || (image ? '[Image sent]' : ''),
+              image_url: userImageUrl, // Store base64 image data URL
+              created_at: new Date().toISOString()
+            });
+
+          if (userMsgError) {
+            console.error('⚠️ Failed to save user message:', userMsgError);
+          } else {
+            console.log('✅ Saved user message to database');
+          }
+
+          // Save assistant response
+          const { error: assistantMsgError } = await supabase
+            .from('chat_messages')
+            .insert({
+              user_id: userId,
+              role: 'assistant',
+              content: fooResponse,
+              audio_url: audioUrl || null,
+              created_at: new Date().toISOString()
+            });
+
+          if (assistantMsgError) {
+            console.error('⚠️ Failed to save assistant message:', assistantMsgError);
+          } else {
+            console.log('✅ Saved assistant message to database');
+          }
+        } catch (saveError: any) {
+          // Don't fail the request if saving fails - just log it
+          console.error('⚠️ Error saving chat history:', saveError);
+        }
+      }
+    }
 
     // Return response with usage info
     const responseData: any = {
