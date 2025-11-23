@@ -455,11 +455,14 @@ ${turnInstructions}
       fooResponse = "Ayy my bad foo, my brain glitched. Try again? 🤖";
     }
 
-    // Generate voice for premium users (skip if response is too long)
+    // Generate voice only if explicitly requested (AF mode or on-demand)
+    // Regular chat no longer generates voice automatically to save API usage
     let audioUrl: string | undefined;
     const isResponseTooLongForVoice = fooResponse.length > 600; // Max ~600 chars for voice
-    
-    if (includeVoice && process.env.ELEVENLABS_API_KEY && !isResponseTooLongForVoice) {
+
+    // Only generate voice in AF mode (voice conversation mode)
+    // Regular chat uses on-demand voice generation via /api/generate-voice
+    if (includeVoice && afMode && process.env.ELEVENLABS_API_KEY && !isResponseTooLongForVoice) {
       try {
         // ALWAYS use Pablo Marshal - the authentic Mexican-sounding voice for Foo
         const voiceId = 'OhisAd2u8Q6qSA4xXAAT'; // Pablo Marshal (Mexican-sounding voice)

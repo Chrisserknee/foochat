@@ -546,8 +546,8 @@ export default function FooChat() {
         console.log('📸 Adding image to request:', imageToSend.name);
         formData.append('image', imageToSend);
       }
-      // For testing: voice is free for everyone
-      formData.append('includeVoice', 'true'); // TODO: Change back to isPro ? 'true' : 'false' when going to production
+      // Voice generation is now on-demand (not automatic)
+      formData.append('includeVoice', 'false');
       formData.append('advancedVoice', useAdvancedVoice ? 'true' : 'false');
       
       // Add conversation history for context (last 30 messages for better memory)
@@ -571,7 +571,7 @@ export default function FooChat() {
       console.log('📤 Sending message to Foo...', {
         messageLength: userMessage.content.length,
         hasImage: !!imageToSend,
-        includeVoice: true,
+        includeVoice: false, // Voice is now on-demand
         advancedVoice: useAdvancedVoice,
         conversationLength: recentMessages.length,
         totalMessages: messages.length + 1 // +1 for current message
@@ -699,6 +699,69 @@ export default function FooChat() {
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const [generatingVoiceFor, setGeneratingVoiceFor] = useState<string | null>(null);
+
+  const generateAndPlayVoice = async (messageId: string, messageContent: string) => {
+    // Stop any currently playing audio
+    if (currentAudioRef.current) {
+      console.log('⏹️ Stopping previous audio');
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+
+    // Check if message is too long
+    if (messageContent.length > 600) {
+      setNotification({ 
+        message: 'Message too long for voice generation (max 600 characters)', 
+        type: 'error' 
+      });
+      return;
+    }
+
+    setGeneratingVoiceFor(messageId);
+    console.log('🎤 Generating voice on-demand for message:', messageId);
+
+    try {
+      const response = await fetch('/api/generate-voice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageContent,
+          advancedVoice: useAdvancedVoice
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate voice');
+      }
+
+      const data = await response.json();
+      console.log('✅ Voice generated, duration:', data.duration, 'ms');
+
+      // Update the message with the audio URL
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, audioUrl: data.audioUrl }
+          : msg
+      ));
+
+      // Play the audio
+      playAudio(data.audioUrl, messageId);
+
+    } catch (error: any) {
+      console.error('❌ Voice generation error:', error);
+      setNotification({ 
+        message: error.message || 'Failed to generate voice', 
+        type: 'error' 
+      });
+    } finally {
+      setGeneratingVoiceFor(null);
     }
   };
 
@@ -2707,18 +2770,44 @@ export default function FooChat() {
                               </p>
                             </div>
                             
-                            {/* Audio player for Foo's voice messages */}
-                            {msg.role === 'assistant' && msg.audioUrl && (
-                              <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
-                                <audio 
-                                  controls 
-                                  className="w-full h-8"
-                                  style={{ 
-                                    filter: theme === 'dark' ? 'invert(1) hue-rotate(180deg)' : 'none'
-                                  }}
-                                >
-                                  <source src={msg.audioUrl} type="audio/mpeg" />
-                                </audio>
+                            {/* Play button for voice generation (on-demand) */}
+                            {msg.role === 'assistant' && (
+                              <div className="mt-3 pt-3 border-t flex items-center gap-2" style={{ borderColor: 'var(--border)' }}>
+                                {msg.audioUrl ? (
+                                  // Audio already generated - show player
+                                  <audio 
+                                    controls 
+                                    className="flex-1 h-8"
+                                    style={{ 
+                                      filter: theme === 'dark' ? 'invert(1) hue-rotate(180deg)' : 'none'
+                                    }}
+                                  >
+                                    <source src={msg.audioUrl} type="audio/mpeg" />
+                                  </audio>
+                                ) : (
+                                  // No audio yet - show generate button
+                                  <button
+                                    onClick={() => generateAndPlayVoice(msg.id, msg.content)}
+                                    disabled={generatingVoiceFor === msg.id || msg.content.length > 600}
+                                    className="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    style={{
+                                      background: 'var(--accent-purple)',
+                                      color: 'white'
+                                    }}
+                                  >
+                                    {generatingVoiceFor === msg.id ? (
+                                      <>
+                                        <span className="animate-spin">⏳</span>
+                                        <span>Generating...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span>🔊</span>
+                                        <span>Play Foo's Voice</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
