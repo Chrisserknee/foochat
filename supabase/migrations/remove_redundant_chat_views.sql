@@ -15,11 +15,6 @@ DROP VIEW IF EXISTS chat_conversations CASCADE;
 -- Remove conversation_threads if it exists (q_and_a_view is clearer)
 DROP VIEW IF EXISTS conversation_threads CASCADE;
 
--- Revoke permissions before dropping (cleanup)
-REVOKE ALL ON chat_messages_readable FROM service_role;
-REVOKE ALL ON chat_conversations FROM service_role;
-REVOKE ALL ON conversation_threads FROM service_role;
-
 -- Keep these views (they're the best for seeing user questions):
 -- ✅ q_and_a_view - Shows user questions paired with Foo responses side-by-side
 -- ✅ user_messages_only - Shows only what users asked
