@@ -41,27 +41,33 @@ ORDER BY created_at DESC;
 
 -- Create a view that shows conversations grouped together
 CREATE OR REPLACE VIEW chat_conversations AS
+WITH conversation_groups AS (
+  SELECT 
+    CASE 
+      WHEN user_id IS NOT NULL THEN user_id::text
+      ELSE 'guest_' || guest_session_id
+    END as conversation_id,
+    CASE 
+      WHEN user_id IS NOT NULL THEN 'Signed-in User'
+      ELSE 'Guest: ' || LEFT(guest_session_id, 20) || '...'
+    END as user_type,
+    role,
+    created_at
+  FROM chat_messages
+)
 SELECT 
-  CASE 
-    WHEN user_id IS NOT NULL THEN user_id::text
-    ELSE 'guest_' || guest_session_id
-  END as conversation_id,
-  CASE 
-    WHEN user_id IS NOT NULL THEN 'Signed-in User'
-    ELSE 'Guest: ' || LEFT(guest_session_id, 20) || '...'
-  END as user_type,
+  conversation_id,
+  user_type,
   COUNT(*) as total_messages,
   COUNT(*) FILTER (WHERE role = 'user') as user_messages,
   COUNT(*) FILTER (WHERE role = 'assistant') as foo_messages,
   MIN(created_at) as first_message,
   MAX(created_at) as last_message,
   MAX(created_at) as most_recent
-FROM chat_messages
+FROM conversation_groups
 GROUP BY 
-  CASE 
-    WHEN user_id IS NOT NULL THEN user_id::text
-    ELSE 'guest_' || guest_session_id
-  END
+  conversation_id,
+  user_type
 ORDER BY most_recent DESC;
 
 -- Create a function to get a full conversation thread
