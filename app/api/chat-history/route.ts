@@ -5,16 +5,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const guestSessionId = searchParams.get('guestSessionId');
 
-    if (!userId) {
+    if (!userId && !guestSessionId) {
       return NextResponse.json(
-        { error: 'User ID required' },
+        { error: 'User ID or guest session ID required' },
         { status: 400 }
       );
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
@@ -28,13 +29,20 @@ export async function GET(request: NextRequest) {
     // Get optional limit parameter (default: 100 most recent messages)
     const limit = parseInt(searchParams.get('limit') || '100');
 
-    // Fetch chat messages for the user, ordered by most recent first
-    const { data: messages, error } = await supabase
+    // Build query based on whether it's a user or guest
+    let query = supabase
       .from('chat_messages')
       .select('*')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    } else if (guestSessionId) {
+      query = query.eq('guest_session_id', guestSessionId);
+    }
+
+    const { data: messages, error } = await query;
 
     if (error) {
       console.error('❌ Failed to fetch chat history:', error);
@@ -54,7 +62,8 @@ export async function GET(request: NextRequest) {
       timestamp: new Date(msg.created_at)
     }));
 
-    console.log(`✅ Fetched ${sortedMessages.length} messages for user ${userId}`);
+    const identifier = userId || `guest:${guestSessionId}`;
+    console.log(`✅ Fetched ${sortedMessages.length} messages for ${identifier}`);
 
     return NextResponse.json({ messages: sortedMessages });
 

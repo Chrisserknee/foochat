@@ -176,3 +176,6 @@ If it returns **3 rows**, the columns exist! The issue is elsewhere.
 
 After you run it, let me know and we'll verify everything is working!
 
+
+
+

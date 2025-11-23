@@ -283,3 +283,6 @@ WHERE id = 'user-id-here';
 
 **Ready to deploy!** Run the database migration, test with Stripe test mode, and your AF Voice Mode paywall is live! 🎤✨
 
+
+
+

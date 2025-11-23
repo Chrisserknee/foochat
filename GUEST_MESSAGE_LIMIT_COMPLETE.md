@@ -357,3 +357,6 @@ Track these to measure effectiveness:
 
 Guest users now have a real, enforceable 10-message limit that requires sign-up to continue. The system is fair, user-friendly, and actually works! 🚀
 
+
+
+

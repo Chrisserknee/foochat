@@ -155,6 +155,7 @@ export async function POST(request: NextRequest) {
     const advancedVoice = formData.get('advancedVoice') === 'true';
     const afMode = formData.get('afMode') === 'true'; // Speed optimization flag
     const userId = formData.get('userId') as string | null;
+    const guestSessionId = formData.get('guestSessionId') as string | null;
     const isPro = formData.get('isPro') === 'true';
     
     // 🔍 DEBUG: Log all FormData keys to see what was actually sent
@@ -508,8 +509,8 @@ ${turnInstructions}
       }
     }
 
-    // Save chat history to database (only for signed-in users)
-    if (userId) {
+    // Save chat history to database (for both signed-in users and guests)
+    if (userId || guestSessionId) {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       
@@ -524,7 +525,8 @@ ${turnInstructions}
             }
           });
           
-          console.log('💾 Attempting to save chat history for user:', userId);
+          const identifier = userId || `guest:${guestSessionId}`;
+          console.log('💾 Attempting to save chat history for:', identifier);
           
           // Save user message
           const userImageUrl = image ? `data:${image.type};base64,${Buffer.from(await image.arrayBuffer()).toString('base64')}` : null;
@@ -532,7 +534,8 @@ ${turnInstructions}
           const { data: userMsgData, error: userMsgError } = await supabase
             .from('chat_messages')
             .insert({
-              user_id: userId,
+              user_id: userId || null,
+              guest_session_id: guestSessionId || null,
               role: 'user',
               content: message || (image ? '[Image sent]' : ''),
               image_url: userImageUrl, // Store base64 image data URL
@@ -551,7 +554,8 @@ ${turnInstructions}
           const { data: assistantMsgData, error: assistantMsgError } = await supabase
             .from('chat_messages')
             .insert({
-              user_id: userId,
+              user_id: userId || null,
+              guest_session_id: guestSessionId || null,
               role: 'assistant',
               content: fooResponse,
               audio_url: audioUrl || null,
@@ -575,7 +579,7 @@ ${turnInstructions}
         console.warn('⚠️ Supabase URL:', !!supabaseUrl, 'Service Key:', !!supabaseServiceKey);
       }
     } else {
-      console.log('ℹ️ Skipping chat history save: User not signed in (userId is null)');
+      console.log('ℹ️ Skipping chat history save: No userId or guestSessionId provided');
     }
 
     // Return response with usage info

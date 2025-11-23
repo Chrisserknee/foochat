@@ -14,3 +14,6 @@ UPDATE user_profiles
 SET has_af_voice = FALSE 
 WHERE has_af_voice IS NULL;
 
+
+
+

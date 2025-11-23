@@ -98,9 +98,26 @@ export default function FooChat() {
     console.log('🔄 isAFModeRef updated:', isAFMode);
   }, [isAFMode]);
 
+  // Generate or load guest session ID
+  const getGuestSessionId = (): string => {
+    if (typeof window === 'undefined') return '';
+    
+    let sessionId = localStorage.getItem('foochat_guestSessionId');
+    if (!sessionId) {
+      // Generate a unique session ID
+      sessionId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem('foochat_guestSessionId', sessionId);
+      console.log('🆕 Generated new guest session ID:', sessionId);
+    }
+    return sessionId;
+  };
+
   // Load guest message count from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && !user) {
+      // Initialize guest session ID
+      getGuestSessionId();
+      
       const storedCount = localStorage.getItem('foochat_guestMessageCount');
       const storedTimestamp = localStorage.getItem('foochat_guestMessageTimestamp');
       
@@ -131,49 +148,74 @@ export default function FooChat() {
     }
   }, [user]);
 
-  // Load chat history for signed-in users
+  // Load chat history for signed-in users and guests
   useEffect(() => {
     const loadChatHistory = async () => {
-      if (!user?.id) return;
-
-      try {
-        console.log('📚 Loading chat history for user:', user.id);
-        const response = await fetch(`/api/chat-history?userId=${user.id}&limit=100`);
-        
-        if (!response.ok) {
-          console.error('⚠️ Failed to load chat history');
-          return;
-        }
-
-        const data = await response.json();
-        
-        if (data.messages && data.messages.length > 0) {
-          // Convert timestamp strings to Date objects
-          const loadedMessages: Message[] = data.messages.map((msg: any) => ({
-            id: msg.id,
-            role: msg.role,
-            content: msg.content,
-            imageUrl: msg.imageUrl,
-            audioUrl: msg.audioUrl,
-            timestamp: new Date(msg.timestamp)
-          }));
-
-          console.log(`✅ Loaded ${loadedMessages.length} messages from history`);
+      if (user?.id) {
+        // Signed-in user
+        try {
+          console.log('📚 Loading chat history for user:', user.id);
+          const response = await fetch(`/api/chat-history?userId=${user.id}&limit=100`);
           
-          // Replace messages with loaded history
-          // If there's history, use it; otherwise keep the welcome message
-          if (loadedMessages.length > 0) {
-            setMessages(loadedMessages);
-          } else {
-            // No history - keep welcome message
-            console.log('📭 No history found, keeping welcome message');
+          if (!response.ok) {
+            console.error('⚠️ Failed to load chat history');
+            return;
           }
-        } else {
-          console.log('📭 No chat history found, starting fresh');
+
+          const data = await response.json();
+          
+          if (data.messages && data.messages.length > 0) {
+            const loadedMessages: Message[] = data.messages.map((msg: any) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              imageUrl: msg.imageUrl,
+              audioUrl: msg.audioUrl,
+              timestamp: new Date(msg.timestamp)
+            }));
+
+            console.log(`✅ Loaded ${loadedMessages.length} messages from history`);
+            if (loadedMessages.length > 0) {
+              setMessages(loadedMessages);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error loading chat history:', error);
         }
-      } catch (error) {
-        console.error('❌ Error loading chat history:', error);
-        // Don't show error to user - just continue with empty chat
+      } else if (typeof window !== 'undefined') {
+        // Guest user - load by session ID
+        const guestSessionId = getGuestSessionId();
+        if (guestSessionId) {
+          try {
+            console.log('📚 Loading chat history for guest:', guestSessionId);
+            const response = await fetch(`/api/chat-history?guestSessionId=${guestSessionId}&limit=100`);
+            
+            if (!response.ok) {
+              console.error('⚠️ Failed to load guest chat history');
+              return;
+            }
+
+            const data = await response.json();
+            
+            if (data.messages && data.messages.length > 0) {
+              const loadedMessages: Message[] = data.messages.map((msg: any) => ({
+                id: msg.id,
+                role: msg.role,
+                content: msg.content,
+                imageUrl: msg.imageUrl,
+                audioUrl: msg.audioUrl,
+                timestamp: new Date(msg.timestamp)
+              }));
+
+              console.log(`✅ Loaded ${loadedMessages.length} guest messages from history`);
+              if (loadedMessages.length > 0) {
+                setMessages(loadedMessages);
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error loading guest chat history:', error);
+          }
+        }
       }
     };
 
@@ -518,6 +560,12 @@ export default function FooChat() {
       if (user) {
         formData.append('userId', user.id);
         formData.append('isPro', isPro ? 'true' : 'false');
+      } else {
+        // Guest user - send session ID
+        const guestSessionId = getGuestSessionId();
+        if (guestSessionId) {
+          formData.append('guestSessionId', guestSessionId);
+        }
       }
 
       console.log('📤 Sending message to Foo...', {
@@ -1343,6 +1391,12 @@ export default function FooChat() {
           if (user) {
             chatFormData.append('userId', user.id);
             chatFormData.append('isPro', isPro ? 'true' : 'false');
+          } else {
+            // Guest user - send session ID
+            const guestSessionId = getGuestSessionId();
+            if (guestSessionId) {
+              chatFormData.append('guestSessionId', guestSessionId);
+            }
           }
 
           console.log('💬 [AF-MOBILE] Sending to Foo:', {
@@ -1974,6 +2028,12 @@ export default function FooChat() {
         if (user) {
           formData.append('userId', user.id);
           formData.append('isPro', isPro ? 'true' : 'false');
+        } else {
+          // Guest user - send session ID
+          const guestSessionId = getGuestSessionId();
+          if (guestSessionId) {
+            formData.append('guestSessionId', guestSessionId);
+          }
         }
 
         console.log('💬 [AF-DESKTOP] Sending to Foo:', {
